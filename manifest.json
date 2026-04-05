@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Schedulo — Kanban + Gantt",
+  "version": "2.0.0",
+  "description": "A Trello-style Kanban board with a live-linked Gantt chart, all in your toolbar.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Schedulo",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": ["storage"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
