@@ -17,7 +17,7 @@ Schedulo adalah extension Chrome popup yang menggabungkan papan Kanban dan Gantt
 2. Buka `chrome://extensions/`.
 3. Aktifkan `Developer mode`.
 4. Klik `Load unpacked`.
-5. Pilih folder proyek ini (`kangantt`).
+5. Pilih folder proyek ini (`Schedulo`).
 
 ## Cara Pakai
 
