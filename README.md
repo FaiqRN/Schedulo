@@ -42,17 +42,6 @@ Struktur data utama sekarang:
 11. Lihat representasi task di tab Gantt.
 12. Gunakan `Export` untuk mengekspor data tampilan aktif.
 
-## Catatan Delete Project
-
-- Delete project akan langsung menghapus project beserta seluruh timeline dan task di dalamnya.
-- Tidak ada pemindahan data ke project lain saat delete project.
-
-## Aturan Validasi Tanggal
-
-- `card.start` dan `card.due` harus berada dalam rentang `timeline.start` sampai `timeline.due`.
-- `card.due` tidak boleh lebih kecil dari `card.start`.
-- Saat mengubah rentang timeline, perubahan ditolak jika ada task existing yang keluar rentang.
-
 ## Catatan Pengembangan
 
 - Project ini tidak memakai framework build tool.
