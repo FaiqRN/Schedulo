@@ -73,7 +73,7 @@ function buildHeaders(start,totalDays){
   } else if(zoom==='Week'){
     let d=new Date(start);
     while(d<=new Date(start.getTime()+totalDays*86400000)){
-      slots.push('W'+getISOWeek(d));
+      slots.push('W'+String(getISOWeek(d)).padStart(2,'0'));
       d.setDate(d.getDate()+7);
     }
   } else if(zoom==='Month'){
@@ -90,6 +90,14 @@ function buildHeaders(start,totalDays){
     }
   }
   return slots;
+}
+
+function getZoomSlotWidth(){
+  const zoom=ZOOM_LEVELS[zoomIdx];
+  if(zoom==='Day') return 68;
+  if(zoom==='Week') return 78;
+  if(zoom==='Month') return 92;
+  return 106; // Quarter
 }
 
 function getISOWeek(d){
@@ -115,23 +123,32 @@ function renderGantt(){
 
   const active=getActiveTimeline();
 
+  const zoom=ZOOM_LEVELS[zoomIdx];
   const {start,totalDays}=buildTimeRange(timelines);
   const headers=buildHeaders(start,totalDays);
   const numCols=headers.length;
   const LABEL_W=180; // px
+  const slotWidth=getZoomSlotWidth();
 
   /* today % */
   const todayPct=dateToPercent(today(),start,totalDays);
 
   /* grid template: label + time slots */
-  const gridTpl=`${LABEL_W}px repeat(${numCols},1fr)`;
+  const gridTpl=`${LABEL_W}px repeat(${numCols},${slotWidth}px)`;
+  inner.style.minWidth=`${LABEL_W + numCols*slotWidth + 28}px`;
+  inner.style.setProperty('--g-slot-width',`${slotWidth}px`);
 
   /* header row */
   const hdr=document.createElement('div');
-  hdr.className='g-header'; hdr.style.gridTemplateColumns=gridTpl;
+  hdr.className='g-header';
+  hdr.classList.add(`zoom-${zoom.toLowerCase()}`);
+  hdr.style.gridTemplateColumns=gridTpl;
   hdr.innerHTML=`<div class="g-label-col">Task</div>`;
   headers.forEach(h=>{
-    const d=document.createElement('div'); d.className='g-time-col'; d.textContent=h;
+    const d=document.createElement('div');
+    d.className='g-time-col';
+    d.textContent=h;
+    d.title=h;
     hdr.appendChild(d);
   });
   inner.appendChild(hdr);
