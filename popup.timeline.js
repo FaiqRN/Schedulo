@@ -228,7 +228,10 @@ function renderTimelineMoveMapping(sourceTimeline,targetTimeline){
 
 function syncTimelineDeleteTargetOptions(sourceTimelineId){
   const sel=document.getElementById('timeline-delete-target');
-  if(!sel || !board || !Array.isArray(board.timelines)) return;
+  if(!sel) return;
+
+  const timelines=getActiveProjectTimelines();
+  if(!timelines.length) return;
 
   sel.innerHTML='';
   const permanent=document.createElement('option');
@@ -236,7 +239,7 @@ function syncTimelineDeleteTargetOptions(sourceTimelineId){
   permanent.textContent='Delete tasks permanently';
   sel.appendChild(permanent);
 
-  board.timelines
+  timelines
     .filter(tl=>tl.id!==sourceTimelineId)
     .forEach(tl=>{
       const opt=document.createElement('option');
@@ -288,8 +291,8 @@ function findOutOfRangeTasks(timeline,start,due){
 }
 function updateTimelineDeleteButton(){
   const deleteBtn=document.getElementById('timeline-delete');
-  if(!deleteBtn || !board || !Array.isArray(board.timelines)) return;
-  const canDelete=board.timelines.length>1;
+  if(!deleteBtn) return;
+  const canDelete=getActiveProjectTimelines().length>1;
   deleteBtn.disabled=!canDelete;
   deleteBtn.title=canDelete
     ? 'Delete active timeline'
@@ -452,18 +455,23 @@ function moveTimelineTasks(sourceTimeline,targetTimeline,columnMap,cardSelection
 }
 
 function removeTimelineById(timelineId){
-  const idx=board.timelines.findIndex(t=>t.id===timelineId);
+  const project=getActiveProject();
+  if(!project || !Array.isArray(project.timelines)) return false;
+
+  const idx=project.timelines.findIndex(t=>t.id===timelineId);
   if(idx===-1) return false;
 
-  board.timelines.splice(idx,1);
-  const fallback=board.timelines[Math.max(0,idx-1)] || board.timelines[0] || null;
+  project.timelines.splice(idx,1);
+  const fallback=project.timelines[Math.max(0,idx-1)] || project.timelines[0] || null;
   activeTimelineId=fallback ? fallback.id : null;
   return true;
 }
 
 async function deleteActiveTimeline(){
-  if(!board || !Array.isArray(board.timelines)) return;
-  if(board.timelines.length<=1){
+  const timelines=getActiveProjectTimelines();
+  if(!timelines.length) return;
+
+  if(timelines.length<=1){
     await showAppAlert('At least one timeline must remain.','Delete Timeline');
     return;
   }

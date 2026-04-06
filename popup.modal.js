@@ -1,5 +1,8 @@
 'use strict';
 
+let renameMode='list';
+let renameProjectId=null;
+
 /* SHARED MODAL — card add/edit */
 function openModal(colId,cardId){
   modalColId=colId; modalCardId=cardId;
@@ -74,17 +77,73 @@ document.getElementById('card-title-input').addEventListener('keydown',e=>{
 
 /* Rename column */
 function openRename(colId){
+  renameMode='list';
+  renameProjectId=null;
   renameColId=colId;
+
+  const title=document.getElementById('rename-title');
   const input=document.getElementById('rename-input');
+  const saveBtn=document.getElementById('rename-save');
+
+  if(title) title.textContent='Rename list';
+  if(saveBtn) saveBtn.textContent='Rename';
+  input.placeholder='List name...';
+  input.maxLength=40;
+
   input.value=findCol(colId).name;
   document.getElementById('rename-overlay').classList.remove('hidden');
   input.focus(); input.select();
 }
-function closeRename(){ document.getElementById('rename-overlay').classList.add('hidden'); }
+
+function openProjectRename(projectId){
+  const project=findProject(projectId);
+  if(!project) return;
+
+  renameMode='project';
+  renameProjectId=projectId;
+  renameColId=null;
+
+  const title=document.getElementById('rename-title');
+  const input=document.getElementById('rename-input');
+  const saveBtn=document.getElementById('rename-save');
+
+  if(title) title.textContent='Rename project';
+  if(saveBtn) saveBtn.textContent='Rename';
+  input.placeholder='Project name...';
+  input.maxLength=80;
+  input.value=project.name||'';
+
+  document.getElementById('rename-overlay').classList.remove('hidden');
+  input.focus(); input.select();
+}
+
+function closeRename(){
+  document.getElementById('rename-overlay').classList.add('hidden');
+  renameMode='list';
+  renameProjectId=null;
+}
+
 function saveRename(){
   const name=document.getElementById('rename-input').value.trim();
   if(!name) return;
-  const col=findCol(renameColId); if(col){col.name=name; saveBoard(); render();}
+
+  if(renameMode==='project'){
+    const project=findProject(renameProjectId);
+    if(project){
+      project.name=name;
+      saveBoard();
+      render();
+    }
+    closeRename();
+    return;
+  }
+
+  const col=findCol(renameColId);
+  if(col){
+    col.name=name;
+    saveBoard();
+    render();
+  }
   closeRename();
 }
 document.getElementById('rename-close').addEventListener('click',closeRename);

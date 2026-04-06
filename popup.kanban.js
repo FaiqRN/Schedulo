@@ -124,19 +124,22 @@ function cloneColumnStructure(columns){
 }
 
 function addTimeline(){
-  if(!board) return;
-  if(!Array.isArray(board.timelines)) board.timelines=[];
+  const project=getActiveProject();
+  if(!project) return;
+  if(!Array.isArray(project.timelines)) project.timelines=[];
+
   const active=getActiveTimeline();
   const start=active ? addDays(active.due||active.start,1) : today(-7);
   const timeline={
     id:'tl-'+uid(),
-    name:`Timeline ${board.timelines.length+1}`,
+    name:`Timeline ${project.timelines.length+1}`,
     start,
     due:addDays(start,14),
     columns:cloneColumnStructure(active && active.columns)
   };
-  board.timelines.push(timeline);
+  project.timelines.push(timeline);
   activeTimelineId=timeline.id;
+  if(board) board.lastProjectId=project.id;
   saveBoard();
   render();
   openTimelineSettings();

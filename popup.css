@@ -20,9 +20,9 @@
   --mono:     'DM Mono',monospace;
 }
 
-html{width:720px;min-height:540px}
+html{width:800px;min-height:600px}
 body{
-  width:720px;min-height:540px;max-height:640px;
+  width:800px;min-height:600px;max-height:600px;
   background:var(--bg);color:var(--text);
   font-family:var(--font);font-size:13px;line-height:1.5;
   -webkit-font-smoothing:antialiased;
@@ -34,7 +34,11 @@ body{
   display:flex;align-items:center;gap:6px;
   padding:10px 14px;border-bottom:.5px solid var(--col-bdr);
   background:var(--bg);flex-shrink:0;
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:thin;scrollbar-color:var(--muted2) transparent;
 }
+.topbar::-webkit-scrollbar{height:4px}
+.topbar::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:99px}
 .brand{display:flex;align-items:center;gap:7px;margin-right:4px}
 .brand-name{font-size:14px;font-weight:700;letter-spacing:-.02em}
 
@@ -57,6 +61,7 @@ body{
   white-space:nowrap;
 }
 .tb-btn:hover{color:var(--text);background:var(--col-bg);border-color:rgba(255,255,255,.14)}
+.tb-btn:disabled{opacity:.45;cursor:not-allowed}
 
 .timeline-switcher{display:flex;align-items:center;flex-shrink:1;min-width:130px;max-width:160px}
 .timeline-select{
@@ -67,9 +72,70 @@ body{
 }
 .timeline-select:focus{outline:none;border-color:var(--accent)}
 
+body.project-mode .timeline-switcher,
+body.project-mode #btn-edit-timeline,
+body.project-mode #btn-export,
+body.project-mode #btn-add-col{
+  display:none;
+}
+
 /*  Views  */
 .view{display:none;flex:1;overflow:hidden;flex-direction:column}
 .view.active{display:flex}
+
+/* PROJECT */
+.project-wrap{
+  flex:1;overflow:auto;padding:16px;
+  scrollbar-width:thin;scrollbar-color:var(--muted2) transparent;
+}
+.project-wrap::-webkit-scrollbar{width:6px}
+.project-wrap::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:99px}
+
+.project-panel{
+  width:100%;max-width:680px;margin:0 auto;
+  background:var(--col-bg);border:.5px solid var(--col-bdr);
+  border-radius:var(--r-lg);padding:16px;
+}
+.project-title{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--text);margin-bottom:2px}
+.project-sub{font-size:11px;color:var(--muted);margin-bottom:12px}
+
+.project-create-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.project-input{flex:1;min-width:220px;margin-bottom:0}
+
+.project-list-wrap{
+  background:var(--card-bg);border:.5px solid rgba(255,255,255,.08);
+  border-radius:var(--r-md);padding:10px;
+}
+.project-list-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.project-count{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+.project-list{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto;padding-right:2px}
+.project-list::-webkit-scrollbar{width:4px}
+.project-list::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:99px}
+
+.project-row{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:8px 9px;border:.5px solid rgba(255,255,255,.08);
+  border-radius:8px;background:#21231f;
+}
+.project-row.active{border-color:rgba(247,201,72,.55);box-shadow:0 0 0 1px rgba(247,201,72,.2) inset}
+.project-meta{min-width:0;display:flex;flex-direction:column;gap:2px}
+.project-name{font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project-stats{font-size:10px;color:var(--muted)}
+
+.project-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.project-btn{
+  border:.5px solid rgba(255,255,255,.12);background:transparent;
+  color:var(--muted);font-family:var(--font);font-size:10px;
+  border-radius:5px;padding:4px 7px;cursor:pointer;
+  transition:color .12s,background .12s,border-color .12s;
+}
+.project-btn:hover{color:var(--text);background:var(--muted2)}
+.project-btn.danger{color:var(--danger);border-color:rgba(224,85,85,.3)}
+.project-btn.danger:hover{background:rgba(224,85,85,.12);color:#ff9a9a}
+
+.project-empty{font-size:10px;color:var(--muted);line-height:1.5;display:none}
+.project-empty.active{display:block}
 
 /* KANBAN */
 .board{

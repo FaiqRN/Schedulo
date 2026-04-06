@@ -17,7 +17,11 @@
     </div>
 
     <nav class="tab-nav">
-      <button class="tab-btn active" data-view="kanban">
+      <button class="tab-btn active" data-view="project">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M3 4.4h6M3 6h4.2M3 7.6h5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+        Project
+      </button>
+      <button class="tab-btn" data-view="kanban">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="3" height="10" rx="1" fill="currentColor"/><rect x="5" y="1" width="3" height="7" rx="1" fill="currentColor"/><rect x="9" y="1" width="2" height="5" rx="1" fill="currentColor"/></svg>
         Kanban
       </button>
@@ -47,8 +51,32 @@
     </button>
   </header>
 
+  <!-- PROJECT VIEW -->
+  <div class="view active" id="view-project">
+    <div class="project-wrap">
+      <div class="project-panel">
+        <h2 class="project-title">Projects</h2>
+        <p class="project-sub">Create a project, or pick one to jump straight into Kanban.</p>
+
+        <div class="project-create-row">
+          <input class="m-input project-input" id="project-name-input" placeholder="New project name..." maxlength="80" />
+          <button class="btn-accent" id="project-create-btn">Create project</button>
+        </div>
+
+        <div class="project-list-wrap">
+          <div class="project-list-head">
+            <span class="m-label">All projects</span>
+            <span class="project-count" id="project-count">0</span>
+          </div>
+          <div class="project-list" id="project-list"></div>
+          <p class="project-empty" id="project-empty">No projects yet. Create your first project to continue.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- KANBAN VIEW -->
-  <div class="view active" id="view-kanban">
+  <div class="view" id="view-kanban">
     <div class="board" id="board"></div>
   </div>
 
@@ -108,11 +136,11 @@
     </div>
   </div>
 
-  <!-- RENAME COLUMN MODAL -->
+  <!-- RENAME MODAL -->
   <div class="modal-overlay hidden" id="rename-overlay">
     <div class="modal small">
       <div class="modal-header">
-        <span class="modal-title">Rename list</span>
+        <span class="modal-title" id="rename-title">Rename</span>
         <button class="modal-close" id="rename-close">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 1l9 9M10 1L1 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
@@ -168,6 +196,7 @@
   <script src="popup.gantt.js"></script>
   <script src="popup.modal.js"></script>
   <script src="popup.timeline.js"></script>
+  <script src="popup.project.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -16,25 +16,8 @@ function today(offset=0){
   return d.toISOString().slice(0,10);
 }
 const DEFAULT_DATA = {
-  timelines:[
-    {
-      id:'tl-1',
-      name:'Main Timeline',
-      start:today(-7),
-      due:today(21),
-      columns:[
-        {id:'col-1',name:'To Do',     dotColor:'#F7C948',cards:[
-          {id:'c-1',title:'Market research', desc:'',label:'blue',  start:today(-5),  due:today(3)},
-          {id:'c-2',title:'Write brief',     desc:'',label:'purple',start:today(-2),  due:today(5)},
-        ]},
-        {id:'col-2',name:'In Progress',dotColor:'#4ECDC4',cards:[
-          {id:'c-3',title:'Design popup UI', desc:'Figma wireframes',label:'teal',start:today(-1),due:today(6)},
-        ]},
-        {id:'col-3',name:'Review',    dotColor:'#74B3F0',cards:[]},
-        {id:'col-4',name:'Done',      dotColor:'#72C472',cards:[]},
-      ]
-    }
-  ]
+  projects:[],
+  lastProjectId:null
 };
 
 /*  State  */
@@ -48,6 +31,7 @@ let dragSrcCol  = null;
 let activeMenu  = null;
 let renameColId = null;
 let placeholder = null;
+let activeProjectId = null;
 let activeTimelineId = null;
 
 /*  Storage  */
@@ -65,6 +49,27 @@ function makeDefaultColumns(){
     {id:'col-'+uid(),name:'Review',dotColor:'#74B3F0',cards:[]},
     {id:'col-'+uid(),name:'Done',dotColor:'#72C472',cards:[]},
   ];
+}
+
+function makeDefaultTimeline(name='Main Timeline'){
+  const columns=makeDefaultColumns();
+  const range=getTimelineDateRange(columns);
+  return {
+    id:'tl-'+uid(),
+    name,
+    start:range.start,
+    due:range.due,
+    columns
+  };
+}
+
+function makeDefaultProject(name='New Project'){
+  const cleanName=String(name||'').trim()||'New Project';
+  return {
+    id:'prj-'+uid(),
+    name:cleanName,
+    timelines:[makeDefaultTimeline()]
+  };
 }
 
 function normalizeColumns(columns){
@@ -99,47 +104,143 @@ function getTimelineDateRange(columns){
   };
 }
 
-function normalizeBoardData(raw){
-  if(raw && Array.isArray(raw.timelines) && raw.timelines.length){
-    return {
-      timelines: raw.timelines.map((tl,idx)=>{
-        const columns=normalizeColumns(tl.columns);
-        const range=getTimelineDateRange(columns);
-        return {
-          id:tl.id||('tl-'+uid()),
-          name:tl.name||`Timeline ${idx+1}`,
-          start:tl.start||range.start,
-          due:tl.due||range.due,
-          columns
-        };
-      })
-    };
-  }
-
-  const legacyCols=normalizeColumns(raw && raw.columns);
-  const range=getTimelineDateRange(legacyCols);
+function normalizeTimeline(rawTimeline,idx){
+  const columns=normalizeColumns(rawTimeline && rawTimeline.columns);
+  const range=getTimelineDateRange(columns);
   return {
-    timelines:[{
-      id:'tl-'+uid(),
-      name:'Main Timeline',
-      start:range.start,
-      due:range.due,
-      columns:legacyCols
-    }]
+    id:(rawTimeline && rawTimeline.id) || ('tl-'+uid()),
+    name:(rawTimeline && rawTimeline.name) || `Timeline ${idx+1}`,
+    start:(rawTimeline && rawTimeline.start) || range.start,
+    due:(rawTimeline && rawTimeline.due) || range.due,
+    columns
   };
 }
 
+function normalizeTimelines(timelines){
+  const src=Array.isArray(timelines) ? timelines : [];
+  if(!src.length) return [makeDefaultTimeline()];
+  return src.map((timeline,idx)=>normalizeTimeline(timeline,idx));
+}
+
+function normalizeProject(rawProject,idx){
+  return {
+    id:(rawProject && rawProject.id) || ('prj-'+uid()),
+    name:(rawProject && rawProject.name) || `Project ${idx+1}`,
+    timelines:normalizeTimelines(rawProject && rawProject.timelines)
+  };
+}
+
+function normalizeBoardData(raw){
+  if(raw && Array.isArray(raw.projects)){
+    const projects=raw.projects.map((project,idx)=>normalizeProject(project,idx));
+    const fallbackId=projects[0] ? projects[0].id : null;
+    const lastProjectId=projects.some(project=>project.id===raw.lastProjectId)
+      ? raw.lastProjectId
+      : fallbackId;
+    return {projects,lastProjectId};
+  }
+
+  if(raw && Array.isArray(raw.timelines) && raw.timelines.length){
+    const migratedProject={
+      id:'prj-'+uid(),
+      name:'Main Project',
+      timelines:raw.timelines.map((timeline,idx)=>normalizeTimeline(timeline,idx))
+    };
+    return {
+      projects:[migratedProject],
+      lastProjectId:migratedProject.id
+    };
+  }
+
+  const hasLegacyColumns=Boolean(raw && Array.isArray(raw.columns) && raw.columns.length);
+  if(hasLegacyColumns){
+    const legacyCols=normalizeColumns(raw.columns);
+    const range=getTimelineDateRange(legacyCols);
+    const migratedProject={
+      id:'prj-'+uid(),
+      name:'Main Project',
+      timelines:[{
+        id:'tl-'+uid(),
+        name:'Main Timeline',
+        start:range.start,
+        due:range.due,
+        columns:legacyCols
+      }]
+    };
+    return {
+      projects:[migratedProject],
+      lastProjectId:migratedProject.id
+    };
+  }
+
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function getProjects(){
+  return board && Array.isArray(board.projects) ? board.projects : [];
+}
+
+function findProject(id){
+  if(!id) return null;
+  return getProjects().find(project=>project.id===id) || null;
+}
+
+function setActiveProject(projectId){
+  const project=findProject(projectId);
+  if(!project) return false;
+
+  activeProjectId=project.id;
+  if(board) board.lastProjectId=project.id;
+  activeTimelineId=getInitialActiveTimelineId(project.timelines)
+    || project.timelines[0]?.id
+    || null;
+  return true;
+}
+
+function getActiveProject(){
+  const projects=getProjects();
+  if(!projects.length){
+    activeProjectId=null;
+    activeTimelineId=null;
+    return null;
+  }
+
+  let project=findProject(activeProjectId || (board && board.lastProjectId));
+  if(!project) project=projects[0];
+
+  activeProjectId=project.id;
+  if(board) board.lastProjectId=project.id;
+
+  const timelines=Array.isArray(project.timelines) ? project.timelines : [];
+  if(!timelines.some(timeline=>timeline.id===activeTimelineId)){
+    activeTimelineId=getInitialActiveTimelineId(timelines)
+      || timelines[0]?.id
+      || null;
+  }
+  return project;
+}
+
+function getActiveProjectTimelines(){
+  const project=getActiveProject();
+  if(!project || !Array.isArray(project.timelines)) return [];
+  return project.timelines;
+}
+
 function findTimeline(id){
-  if(!board || !Array.isArray(board.timelines)) return null;
-  return board.timelines.find(tl=>tl.id===id) || null;
+  const timelines=getActiveProjectTimelines();
+  return timelines.find(timeline=>timeline.id===id) || null;
 }
 
 function getActiveTimeline(){
-  if(!board || !Array.isArray(board.timelines) || !board.timelines.length) return null;
+  const timelines=getActiveProjectTimelines();
+  if(!timelines.length) return null;
+
   let timeline=findTimeline(activeTimelineId);
   if(!timeline){
-    activeTimelineId=board.timelines[0].id;
-    timeline=board.timelines[0];
+    activeTimelineId=getInitialActiveTimelineId(timelines)
+      || timelines[0]?.id
+      || null;
+    timeline=findTimeline(activeTimelineId) || timelines[0];
   }
   return timeline;
 }
@@ -178,10 +279,23 @@ function timelineLabel(timeline){
 
 function syncTimelineSelect(){
   const sel=document.getElementById('timeline-select');
-  if(!sel || !board || !Array.isArray(board.timelines)) return;
+  if(!sel) return;
+
+  const timelines=getActiveProjectTimelines();
+  if(!timelines.length){
+    sel.innerHTML='';
+    const opt=document.createElement('option');
+    opt.value='';
+    opt.textContent='No timeline';
+    sel.appendChild(opt);
+    sel.disabled=true;
+    return;
+  }
+
+  sel.disabled=false;
   const active=getActiveTimeline();
   sel.innerHTML='';
-  board.timelines.forEach(tl=>{
+  timelines.forEach(tl=>{
     const opt=document.createElement('option');
     opt.value=tl.id;
     opt.textContent=timelineLabel(tl);
@@ -431,7 +545,7 @@ function exportBoardToExcel(){
   }
 
   if(currentView==='gantt'){
-    const timelines=(board && Array.isArray(board.timelines)) ? board.timelines : [];
+    const timelines=getActiveProjectTimelines();
     if(!timelines.length){
       alert('No timelines to export yet.');
       return;

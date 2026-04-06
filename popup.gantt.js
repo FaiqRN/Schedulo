@@ -114,7 +114,7 @@ function renderGantt(){
   const legendEl=document.getElementById('gantt-legend');
   inner.innerHTML='';
 
-  const timelines=(board && Array.isArray(board.timelines)) ? board.timelines : [];
+  const timelines=getActiveProjectTimelines();
   if(!timelines.length){
     hintEl.textContent='No timelines yet. Create one to start planning.';
     legendEl.innerHTML='';
