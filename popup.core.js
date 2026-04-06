@@ -324,7 +324,7 @@ function excelFilename(tag='board'){
   const p=n=>String(n).padStart(2,'0');
   const dateStamp=`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;
   const timeStamp=`${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
-  return `Schedulo-${safeFileToken(tag)}-${dateStamp}-${timeStamp}.xls`;
+  return `${safeFileToken(tag)}-${dateStamp}-${timeStamp}.xls`;
 }
 function cellHtml(s){ return esc(String(s||'')).replace(/\n/g,'<br>'); }
 function exportCardDateText(card){
@@ -544,6 +544,11 @@ function exportBoardToExcel(){
     return;
   }
 
+  const activeProject=getActiveProject();
+  const projectFileTag=activeProject && activeProject.name
+    ? activeProject.name
+    : 'project';
+
   if(currentView==='gantt'){
     const timelines=getActiveProjectTimelines();
     if(!timelines.length){
@@ -551,7 +556,7 @@ function exportBoardToExcel(){
       return;
     }
     const html=buildGanttExportHtml(timelines);
-    triggerExcelDownload(html,excelFilename('gantt-timeline'));
+    triggerExcelDownload(html,excelFilename(projectFileTag));
     return;
   }
 
@@ -566,7 +571,7 @@ function exportBoardToExcel(){
   }
 
   const html=buildKanbanExportHtml(timeline);
-  triggerExcelDownload(html,excelFilename(timeline.name));
+  triggerExcelDownload(html,excelFilename(projectFileTag));
 }
 function findCol(id){ return getColumns().find(c=>c.id===id); }
 function findCard(id){
